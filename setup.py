@@ -4,6 +4,7 @@ version = '2.0'
 
 INSTALL_REQUIRES=[
     'mysql-connector',
+    'pyyaml',
 ]
 
 setup(name='cytunes',
