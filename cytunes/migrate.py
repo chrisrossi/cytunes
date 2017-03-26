@@ -38,6 +38,45 @@ def main():
         print(yaml.dump(data), file=out)
 
 
+image_types = {
+    b'\xff\xd8\xff\xe1': '.jpg',
+    b'\xff\xd8\xff\xe0': '.jpg',
+    b'II*\x00': '.tif',
+    b'\x89PNG': '.png',
+    b'GIF8': '.gif',
+}
+
+
+def typeof(fn):
+    with open(fn, 'rb') as f:
+        return image_types[f.read(4)]
+
+
+def fix_artwork(o):
+    artwork = o['artwork']
+    if not artwork:
+        return
+
+    raw = os.path.join(ARTWORK, artwork)
+    jpg = raw + '.jpg'
+    if os.path.exists(jpg):
+        o['artwork'] = jpg
+    else:
+        o['artwork'] = fix_image(raw)
+
+
+def fix_image(raw):
+    typed = raw + typeof(raw)
+    subprocess.check_call(['mv', raw, typed])
+    if typed.endswith('.jpg'):
+        return typed
+
+    jpg = raw + '.jpg'
+    subprocess.check_call(['convert', typed, jpg])
+    subprocess.check_call(['rm', typed])
+    return jpg
+
+
 def migrate_db():
     con = mysql.connector.connect(user='chris', database='cytunes')
     cur = con.cursor()
@@ -50,12 +89,15 @@ def migrate_db():
     albums = list(fetch(cur))
     album_by_id = {a['id']: a for a in albums}
     for album in albums:
-        artist_albums = artist_by_id[album['artist']].setdefault('albums', {})
+        fix_artwork(album)
+        artist = artist_by_id[album['artist']]
+        artist_albums = artist.setdefault('albums', {})
         artist_albums[album['title']] = album
 
     cur.execute('select * from song where album is not null')
     songs = list(fetch(cur))
     for song in songs:
+        fix_artwork(song)
         album = album_by_id[song['album']]
         album_songs = album.setdefault('songs', {})
         album_songs[song['title']] = song
@@ -63,6 +105,7 @@ def migrate_db():
     cur.execute('select * from song where album is null')
     singles = list(fetch(cur))
     for single in singles:
+        fix_artwork(single)
         artist = artist_by_id[single['artist']]
         artist_albums = artist.setdefault('albums', {})
         album = artist_albums.setdefault(SINGLES, {
@@ -174,15 +217,15 @@ def make_audio_files(artists):
                 os.makedirs(folder)
 
             album_artwork = album.get('artwork')
-            dest = os.path.join(folder, 'cover.jpg')
             if album_artwork:
-                album_artwork = os.path.join(ARTWORK, album_artwork)
+                dest = os.path.join(folder, 'cover.jpg')
                 subprocess.check_call(['cp', album_artwork, dest])
             elif album['title'] != SINGLES:
                 first_song = album['songs'][0]['file_src']
+                dest = os.path.join(folder, 'cover')
                 subprocess.check_call([
                     'metaflac', '--export-picture-to', dest, first_song])
-                album_artwork = dest
+                album_artwork = fix_image(dest)
 
             for song in songs:
                 song['slug'] = '{:02d}-{}'.format(
@@ -194,12 +237,11 @@ def make_audio_files(artists):
 
                 artwork = song.get('artwork')
                 if artwork:
-                    artwork = os.path.join(APPDATA, 'artwork', artwork)
                     subprocess.check_call(['cp', artwork, base + '.jpg'])
                 elif album['title'] == SINGLES:
                     subprocess.check_call([
-                        'metaflac', '--export-picture-to', base + '.jpg', src])
-                    artwork = base + '.jpg'
+                        'metaflac', '--export-picture-to', base, src])
+                    artwork = fix_image(base)
                 else:
                     artwork = album_artwork
 
