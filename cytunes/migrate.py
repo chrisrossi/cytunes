@@ -247,6 +247,7 @@ def make_audio_files(artists):
 
                 # FLAC
                 fname = base + '.flac'
+                song['flac'] = fname
                 if not os.path.exists(fname):
                     print(fname)
                     if src.endswith('.flac') and 'submissions' not in src:
@@ -267,6 +268,7 @@ def make_audio_files(artists):
 
                 # MP3
                 fname = base + '.mp3'
+                song['mp3'] = fname
                 if not os.path.exists(fname):
                     print(fname)
                     args = [
@@ -282,6 +284,7 @@ def make_audio_files(artists):
 
                 # Ogg Vorbis
                 fname = base + '.ogg'
+                song['ogg'] = fname
                 if not os.path.exists(fname):
                     print(fname)
                     args = [
@@ -298,3 +301,14 @@ def make_audio_files(artists):
 
                     if artwork:
                         subprocess.check_call([OGG_COVER_ART, artwork, fname])
+
+            # Zip files
+            if album['title'] != SINGLES:
+                for ext in ('flac', 'mp3', 'ogg'):
+                    zip_file = os.path.join(folder, '{}-{}-{}.zip'.format(
+                        artist['slug'], album['slug'], ext))
+                    if not os.path.exists(zip_file):
+                        print(zip_file)
+                        file_list = [song[ext] for song in album['songs']]
+                        subprocess.check_call(
+                            ['zip', '-D', '-j', zip_file] + file_list)
