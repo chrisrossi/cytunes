@@ -216,16 +216,28 @@ def make_audio_files(artists):
             if not os.path.exists(folder):
                 os.makedirs(folder)
 
+            all_zipped = False
+            if album['title'] != SINGLES:
+                all_zipped = True
+                for ext in ('flac', 'mp3', 'ogg'):
+                    zip_file = os.path.join(folder, '{}-{}-{}.zip'.format(
+                        artist['slug'], album['slug'], ext))
+                    if not os.path.exists(zip_file):
+                        all_zipped = False
+                        break
+
             album_artwork = album.get('artwork')
             if album_artwork:
                 dest = os.path.join(folder, 'cover.jpg')
                 subprocess.check_call(['cp', album_artwork, dest])
+                album_artwork = dest
             elif album['title'] != SINGLES:
                 first_song = album['songs'][0]['file_src']
                 dest = os.path.join(folder, 'cover')
                 subprocess.check_call([
                     'metaflac', '--export-picture-to', dest, first_song])
                 album_artwork = fix_image(dest)
+            album['artwork'] = album_artwork
 
             for song in songs:
                 song['slug'] = '{:02d}-{}'.format(
@@ -237,78 +249,110 @@ def make_audio_files(artists):
 
                 artwork = song.get('artwork')
                 if artwork:
-                    subprocess.check_call(['cp', artwork, base + '.jpg'])
+                    dest = base + '.jpg'
+                    subprocess.check_call(['cp', artwork, dest])
+                    artwork = dest
                 elif album['title'] == SINGLES:
                     subprocess.check_call([
                         'metaflac', '--export-picture-to', base, src])
                     artwork = fix_image(base)
                 else:
                     artwork = album_artwork
+                song['artwork'] = artwork
 
                 # FLAC
-                fname = base + '.flac'
-                song['flac'] = fname
-                if not os.path.exists(fname):
-                    print(fname)
-                    if src.endswith('.flac') and 'submissions' not in src:
-                        subprocess.check_call(['cp', src, fname])
-                    else:
-                        args = [
-                            'flac', src, '-o', fname, '--verify', '--best',
-                            '-T', 'ARTIST=' + artist['name'],
-                            '-T', 'ALBUM=' + album['title'],
-                            '-T', 'TITLE=' + song['title'],
-                            '-T', 'TRACKNUMBER={}'.format(song['tracknum']),
-                        ]
-                        if song['comment']:
-                            args += ['-T', 'DESCRIPTION=' + song['comment']]
-                        if artwork:
-                            args += ['--picture', '3||||' + artwork]
-                        subprocess.check_call(args)
+                if not all_zipped:
+                    fname = base + '.flac'
+                    song['flac'] = fname
+                    if not os.path.exists(fname):
+                        print(fname)
+                        if src.endswith('.flac') and 'submissions' not in src:
+                            subprocess.check_call(['cp', src, fname])
+                        else:
+                            args = [
+                                'flac', src, '-o', fname, '--verify', '--best',
+                                '-T', 'ARTIST=' + artist['name'],
+                                '-T', 'ALBUM=' + album['title'],
+                                '-T', 'TITLE=' + song['title'],
+                                '-T', 'TRACKNUMBER={}'.format(song['tracknum']),
+                            ]
+                            if song['comment']:
+                                args += ['-T', 'DESCRIPTION=' + song['comment']]
+                            if artwork:
+                                args += ['--picture', '3||||' + artwork]
+                            subprocess.check_call(args)
 
                 # MP3
-                fname = base + '.mp3'
-                song['mp3'] = fname
+                if not all_zipped:
+                    fname = base + '.mp3'
+                    song['mp3'] = fname
+                    if not os.path.exists(fname):
+                        print(fname)
+                        args = [
+                            'lame', '--tt', song['title'], '--ta', artist['name'],
+                            '--tl', album['title'], '--tn', str(song['tracknum']),
+                        ]
+                        if song['comment']:
+                            args += ['--tc', song['comment']]
+                        if artwork:
+                            args += ['--ti', artwork]
+                        args += ['-q', '0', '-V', '0', src, fname]
+                        subprocess.check_call(args)
+
+                fname = base + '-stream.mp3'
+                song['mp3_stream'] = fname
                 if not os.path.exists(fname):
                     print(fname)
                     args = [
                         'lame', '--tt', song['title'], '--ta', artist['name'],
                         '--tl', album['title'], '--tn', str(song['tracknum']),
-                    ]
-                    if song['comment']:
-                        args += ['--tc', song['comment']]
-                    if artwork:
-                        args += ['--ti', artwork]
-                    args += ['-q', '0', '-V', '0', src, fname]
+                        '-q', '2', '-V', '3', src, fname]
                     subprocess.check_call(args)
 
                 # Ogg Vorbis
-                fname = base + '.ogg'
-                song['ogg'] = fname
+                if not all_zipped:
+                    fname = base + '.ogg'
+                    song['ogg'] = fname
+                    if not os.path.exists(fname):
+                        print(fname)
+                        args = [
+                            'oggenc', '-o', fname, '-q', '8',
+                            '--tracknum', str(song['tracknum']),
+                            '--title', song['title'],
+                            '--album', album['title'],
+                            '--artist', artist['name'],
+                        ]
+                        if song['comment']:
+                            args += ['--comment', song['comment']]
+                        args.append(src)
+                        subprocess.check_call(args)
+
+                        if artwork:
+                            subprocess.check_call([OGG_COVER_ART, artwork, fname])
+
+                fname = base + '-stream.ogg'
+                song['ogg_stream'] = fname
                 if not os.path.exists(fname):
                     print(fname)
                     args = [
-                        'oggenc', '-o', fname, '-q', '10',
+                        'oggenc', '-o', fname, '-q', '6',
                         '--tracknum', str(song['tracknum']),
                         '--title', song['title'],
                         '--album', album['title'],
                         '--artist', artist['name'],
+                        src
                     ]
-                    if song['comment']:
-                        args += ['--comment', song['comment']]
-                    args.append(src)
                     subprocess.check_call(args)
-
-                    if artwork:
-                        subprocess.check_call([OGG_COVER_ART, artwork, fname])
 
             # Zip files
             if album['title'] != SINGLES:
                 for ext in ('flac', 'mp3', 'ogg'):
                     zip_file = os.path.join(folder, '{}-{}-{}.zip'.format(
                         artist['slug'], album['slug'], ext))
+                    album['zip_' + ext] = zip_file
                     if not os.path.exists(zip_file):
                         print(zip_file)
-                        file_list = [song[ext] for song in album['songs']]
+                        file_list = [song.pop(ext) for song in album['songs']]
                         subprocess.check_call(
                             ['zip', '-D', '-j', zip_file] + file_list)
+                        subprocess.check_call(['rm'] + file_list)
