@@ -61,8 +61,21 @@ function cytunes() {
         tracknum = song.data('tracknum');
         if (tracknum) title = tracknum + '. ' + title;
         title_element.text(title).show();
-        duration_element.text(format_seconds(position) + ' / ' + 
-            format_seconds(duration)).show();
+
+        track = song.find('audio')
+        duration = track[0].duration;
+        if (duration) {
+          duration_element.text(format_seconds(position) + ' / ' + 
+              format_seconds(duration)).show();
+        }
+        else {
+          track.on('durationchange', function(event) {
+            console.log('woo, look at me!');
+            duration = this.duration;
+            duration_element.text(format_seconds(position) + ' / ' + 
+                format_seconds(duration)).show();
+          });
+        }
 
         if (playing) {
           song.find('.play-button').hide();
@@ -104,7 +117,6 @@ function cytunes() {
           });
 
         current = track;
-        duration = audio.duration;
 
         playing = true;
         audio.play();
@@ -119,7 +131,7 @@ function cytunes() {
       }
 
       function stop() {
-        current = duration = position = 0;
+        current = position = 0;
         playing = false;
         refresh();
       }
