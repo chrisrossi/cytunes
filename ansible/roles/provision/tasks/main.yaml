@@ -1,0 +1,57 @@
+---
+- name: Install bare minimum
+  apt: name={{item}} state=present
+  with_items:
+      - aptitude
+
+- name: Upgrade apt packages
+  apt: upgrade=safe update_cache=yes
+
+- name: Install system packages
+  apt: name={{item}} state=present
+  with_items:
+      - git
+      - nginx
+
+- name: Create service user account
+  user:
+      name: '{{ service_user }}'
+      home: '{{ service_home }}'
+      shell: '{{ service_shell }}'
+      system: yes
+      state: present
+      groups: sudo
+
+- name: Allow sudo without password
+  lineinfile: 
+      dest: /etc/sudoers.d/sudo_nopasswd owner=root group=root mode=0440
+      line: "%sudo ALL=(ALL) NOPASSWD:ALL"
+      state: present
+      create: yes
+      validate: 'visudo -cf %s'
+
+- name: Create .ssh directory
+  file: state=directory path={{ service_home }}/.ssh
+      mode=0700 owner={{ service_user }} group={{ service_user }}
+
+- name: Install authorized keys in service_user
+  authorized_key: user={{ service_user }} 
+    key='{{ lookup('file', 'authorized_keys') }}'
+    state=present
+    exclusive=yes
+
+- name: Disable password authentication
+  lineinfile:
+      dest: /etc/ssh/sshd_config
+      line: "PasswordAuthentication no"
+      regexp: "^#?PasswordAuthentication"
+  notify: restart sshd
+
+- name: Set timezone
+  file: 
+      path: /etc/localtime
+      src: /usr/share/zoneinfo/America/New_York
+      state: link
+      force: yes
+  notify:
+    - update timezone

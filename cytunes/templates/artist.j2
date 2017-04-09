@@ -1,0 +1,66 @@
+{% extends "main.j2" %}
+{% block title %}{{ artist.name }} on CyTunes{% endblock %}
+{% block content %}
+{% if artist.photo %}
+<div class="row artist">
+  <div class="col-md-3 col-md-push-9">
+    <img src="{{ artist.photo }}" class="img-responsive" alt="Artist Photo"/>
+  </div>
+  <div class="col-md-9 col-md-pull-3">
+{% endif %}
+    <h1>{{ artist.name }}</h1>
+    {% if artist.bio %}
+    <p>{{ artist.bio }}</p>
+    {% endif %}
+{% if artist.photo %}
+  </div>
+</div>
+{% endif %}
+<hr/>
+
+{% for album in artist.albums %}
+<div class="row album">
+  <div class="col-md-4 col-md-push-8">
+    <img src="{{ album.artwork }}" class="img-responsive" alt="Album Art"/>
+  </div>
+  <div class="col-md-8 col-md-pull-4">
+    <h2>{{ album.title }}<br/><small>by {{ artist.name }}</small></h2>
+    <p>
+      download
+      <a href="{{ album.zip_flac }}">flac</a>
+      <a href="{{ album.zip_mp3 }}">mp3</a>
+      <a href="{{ album.zip_ogg }}">ogg</a>
+    </p>
+    <ol class="album-songs">
+      {% for song in album.songs %}
+      <li>{{ song.title }}</li>
+      {% endfor %}
+    </ol>
+    {% if album.review %}
+    <p>{{ album.review }}</p>
+    {% endif %}
+  </div>
+</div>
+<hr/>
+{% endfor %}
+
+{% for song in artist.singles %}
+<div class="row single">
+  <div class="col-md-4">
+    <img src="{{ song.artwork }}" class="img-responsive" alt="Album Art"/>
+  </div>
+  <div class="col-md-8">
+    <h2>{{ song.title }}<br/><small>by {{ artist.name }}</small></h2>
+    <p>
+      download
+      <a href="{{ song.flac }}">flac</a>
+      <a href="{{ song.mp3 }}">mp3</a>
+      <a href="{{ song.ogg }}">ogg</a>
+    </p>
+    <p>{{ song.comment }}</p>
+  </div>
+</div>
+<hr/>
+{% endfor %}
+
+{% endblock %}

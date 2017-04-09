@@ -1,0 +1,29 @@
+---
+- name: At least install Python
+  hosts: all
+  remote_user: root
+  gather_facts: False
+  
+  tasks:
+  - name: install python 2
+    raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+
+- name: Set up base system
+  hosts: cytunes
+  remote_user: root
+  roles:
+      - provision
+
+- name: Install CyTunes application
+  hosts: cytunes
+  remote_user: '{{ service_user }}'
+  roles:
+      - cytunes
+
+- name: Clean up
+  hosts: all
+  remote_user: root
+  tasks:
+    - name: Reboot system if required
+      command: shutdown -r now 'Rebooting to complete system upgrade'
+          removes=/var/run/reboot-required

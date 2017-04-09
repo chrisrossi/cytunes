@@ -1,0 +1,3 @@
+---
+service_user: cytunes
+service_home: /srv/{{ service_user }}

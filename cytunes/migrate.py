@@ -34,8 +34,24 @@ def main():
     data = [fix_artist(artist) for artist in raw.values()]
     make_audio_files(data)
 
+    for artist in data:
+        singles = [album for album in artist['albums']
+                   if album['title'] == SINGLES]
+        if singles:
+            artist['singles'] = singles[0]['songs']
+            artist['albums'] = [album for album in artist['albums']
+                                if album['title'] != SINGLES]
+        else:
+            artist['singles'] = []
+
     with open(os.path.join(WWWDATA, 'cytunes.yaml'), 'w') as out:
         print(yaml.dump(data), file=out)
+
+
+def url(path):
+    if path and path.startswith(WWWDATA):
+        path = path[len(WWWDATA):]
+    return path
 
 
 image_types = {
@@ -52,17 +68,21 @@ def typeof(fn):
         return image_types[f.read(4)]
 
 
-def fix_artwork(o):
-    artwork = o['artwork']
+def fix_artwork(o, what='artwork'):
+    artwork = o[what]
     if not artwork:
         return
 
     raw = os.path.join(ARTWORK, artwork)
     jpg = raw + '.jpg'
     if os.path.exists(jpg):
-        o['artwork'] = jpg
+        o[what] = jpg
     else:
-        o['artwork'] = fix_image(raw)
+        o[what] = fix_image(raw)
+
+
+def fix_photo(o):
+    fix_artwork(o, 'photo')
 
 
 def fix_image(raw):
@@ -72,6 +92,7 @@ def fix_image(raw):
         return typed
 
     jpg = raw + '.jpg'
+    print(typed)
     subprocess.check_call(['convert', typed, jpg])
     subprocess.check_call(['rm', typed])
     return jpg
@@ -84,6 +105,8 @@ def migrate_db():
     cur.execute('select * from artist')
     artists = list(fetch(cur))
     artist_by_id = {a['id']: a for a in artists}
+    for artist in artists:
+        fix_photo(artist)
 
     cur.execute('select * from album')
     albums = list(fetch(cur))
@@ -114,8 +137,20 @@ def migrate_db():
         album['songs'][single['title']] = single
         single['tracknum'] = len(album['songs'])
 
-    # FIXME will need merge if we also get data from song files
-    return {artist['name']: artist for artist in artists}
+    def clean_artists(artists):
+
+        for artist in artists:
+            if 'albums' not in artist:
+                continue
+
+            has_albums = any(
+                (album for album in artist['albums'].values()
+                 if album.get('songs'))
+            )
+            if has_albums:
+                yield artist
+
+    return {artist['name']: artist for artist in clean_artists(artists)}
 
 
 def fetch(cursor):
@@ -206,13 +241,23 @@ def fixer(*keys, children=None, sort_children=None, fix_child=None):
 def make_audio_files(artists):
     for artist in artists:
         artist['slug'] = slugify(artist['name'])
+        artist_folder = os.path.join(WWWDATA, artist['slug'])
+        if not os.path.exists(artist_folder):
+            os.makedirs(artist_folder)
+
+        artist_photo = artist.get('photo')
+        if artist_photo:
+            dest = os.path.join(artist_folder, 'photo.jpg')
+            subprocess.check_call(['cp', artist_photo, dest])
+            artist['photo'] = url(dest)
+
         for album in artist.get('albums', ()):
             album['slug'] = slugify(album['title'])
             songs = album.get('songs')
             if not songs:
                 continue
 
-            folder = os.path.join(WWWDATA, artist['slug'], album['slug'])
+            folder = os.path.join(artist_folder, album['slug'])
             if not os.path.exists(folder):
                 os.makedirs(folder)
 
@@ -237,7 +282,7 @@ def make_audio_files(artists):
                 subprocess.check_call([
                     'metaflac', '--export-picture-to', dest, first_song])
                 album_artwork = fix_image(dest)
-            album['artwork'] = album_artwork
+            album['artwork'] = url(album_artwork)
 
             for song in songs:
                 song['slug'] = '{:02d}-{}'.format(
@@ -258,7 +303,7 @@ def make_audio_files(artists):
                     artwork = fix_image(base)
                 else:
                     artwork = album_artwork
-                song['artwork'] = artwork
+                song['artwork'] = url(artwork)
 
                 # FLAC
                 if not all_zipped:
@@ -300,7 +345,7 @@ def make_audio_files(artists):
                         subprocess.check_call(args)
 
                 fname = base + '-stream.mp3'
-                song['mp3_stream'] = fname
+                song['mp3_stream'] = url(fname)
                 if not os.path.exists(fname):
                     print(fname)
                     args = [
@@ -331,7 +376,7 @@ def make_audio_files(artists):
                             subprocess.check_call([OGG_COVER_ART, artwork, fname])
 
                 fname = base + '-stream.ogg'
-                song['ogg_stream'] = fname
+                song['ogg_stream'] = url(fname)
                 if not os.path.exists(fname):
                     print(fname)
                     args = [
@@ -349,10 +394,19 @@ def make_audio_files(artists):
                 for ext in ('flac', 'mp3', 'ogg'):
                     zip_file = os.path.join(folder, '{}-{}-{}.zip'.format(
                         artist['slug'], album['slug'], ext))
-                    album['zip_' + ext] = zip_file
+                    album['zip_' + ext] = url(zip_file)
                     if not os.path.exists(zip_file):
                         print(zip_file)
-                        file_list = [song.pop(ext) for song in album['songs']]
+                        file_list = [song[ext] for song in album['songs']]
                         subprocess.check_call(
                             ['zip', '-D', '-j', zip_file] + file_list)
                         subprocess.check_call(['rm'] + file_list)
+
+                for song in album['songs']:
+                    for ext in ('flac', 'mp3', 'ogg'):
+                        song.pop(ext, None)
+
+            else:
+                for song in album['songs']:
+                    for ext in ('flac', 'mp3', 'ogg'):
+                        song[ext] = url(song[ext])

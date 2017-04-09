@@ -1,4 +1,5 @@
 .*.swp
 *.pyc
 *.egg-info
+node_modules
 var

@@ -1,0 +1,8 @@
+{
+  "name": "cytunes",
+  "description": "CyTunes.org Web Site",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-less": "^3.3.0"
+  }
+}

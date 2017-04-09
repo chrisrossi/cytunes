@@ -1,0 +1,21 @@
+server {
+    listen 80;
+    server_name cytunes.org;
+    root {{ service_home }}/wwwdata;
+
+    location ~ \.(flac|mp3|ogg) {
+        sendfile on;
+        tcp_nopush on;
+        sendfile_max_chunk 512K;
+    }
+
+    location ~ ^.*/(?P<request_basename>[^/]+\.(zip))$ {
+        add_header Content-Disposition 'attachment; filename="$request_basename"';
+    }
+}
+
+server {
+	listen 80;
+	server_name www.cytunes.org;
+	rewrite ^ http://cytunes.org$request_uri? permanent;
+}
