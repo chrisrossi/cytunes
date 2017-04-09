@@ -70,7 +70,6 @@ function cytunes() {
         }
         else {
           track.on('durationchange', function(event) {
-            console.log('woo, look at me!');
             duration = this.duration;
             duration_element.text(format_seconds(position) + ' / ' + 
                 format_seconds(duration)).show();

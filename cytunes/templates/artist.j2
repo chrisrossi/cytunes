@@ -8,7 +8,7 @@
   </div>
   <div class="col-md-9 col-md-pull-3">
 {% endif %}
-    <h1>{{ artist.name }}</h1>
+    <h1 class="top">{{ artist.name }}</h1>
     {% if artist.bio %}
     <div class="more-or-less">
       <div class="more">
@@ -34,22 +34,24 @@
   </div>
   <div class="col-md-8 col-md-pull-4">
     <h2>{{ album.title }}<br/><small>by {{ artist.name }}</small></h2>
-    <div class="player">
-      <a href="#" class="play-button">
-        <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
-      </a>
-      <a href="#" class="pause-button">
-        <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>
-      </a>
-      <span class="title"></span>
-      <span class="duration"></span>
-    </div>
     <p>
       download
       <a href="{{ album.zip_flac }}">flac</a>
       <a href="{{ album.zip_mp3 }}">mp3</a>
       <a href="{{ album.zip_ogg }}">ogg</a>
     </p>
+    <div class="panel panel-default">
+      <div class="panel-body player">
+        <a href="#" class="play-button">
+          <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+        </a>
+        <a href="#" class="pause-button">
+          <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>
+        </a>
+        <span class="title"></span>
+        <span class="duration"></span>
+      </div>
+    </div>
     <table class="songs">
       <tbody>
         {% for song in album.songs %}
