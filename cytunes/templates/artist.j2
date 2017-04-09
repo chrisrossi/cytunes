@@ -34,18 +34,52 @@
   </div>
   <div class="col-md-8 col-md-pull-4">
     <h2>{{ album.title }}<br/><small>by {{ artist.name }}</small></h2>
+    <div class="player">
+      <a href="#" class="play-button">
+        <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+      </a>
+      <a href="#" class="pause-button">
+        <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>
+      </a>
+      <span class="title"></span>
+      <span class="duration"></span>
+    </div>
     <p>
       download
       <a href="{{ album.zip_flac }}">flac</a>
       <a href="{{ album.zip_mp3 }}">mp3</a>
       <a href="{{ album.zip_ogg }}">ogg</a>
     </p>
-    <ol class="album-songs">
-      {% for song in album.songs %}
-      <li>{{ song.title }}</li>
-      {% endfor %}
-    </ol>
+    <table class="songs">
+      <tbody>
+        {% for song in album.songs %}
+        <tr class="song" 
+            data-index="{{ loop.index - 1 }}"
+            data-tracknum="{{ loop.index }}">
+          <td class="track-play">
+            <a href="#" class="play-button">
+              <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+            </a>
+            <a href="#" class="pause-button">
+              <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>
+            </a>
+          </td>
+          <td class="track-number">
+            {{ loop.index }}.&nbsp;
+          </td>
+          <td class="track-title">
+            {{ song.title }}
+            <audio>
+              <source src="{{ song.mp3_stream }}" type="audio/mpeg"/>
+              <source src="{{ song.ogg_stream }}" type="audio/ogg"/>
+            </audio>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
     {% if album.review %}
+    <br/>
     <div class="more-or-less">
       <div class="more">
         {{ album.review.more }}
@@ -68,7 +102,24 @@
     <img src="{{ song.artwork }}" class="img-responsive" alt="Album Art"/>
   </div>
   <div class="col-md-8">
+    <div class="pull-right player">
+      <div>
+        <a href="#" class="play-button">
+          <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+        </a>
+        <a href="#" class="pause-button">
+          <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>
+        </a>
+      </div>
+      <div class="duration"></div>
+    </div>
     <h2>{{ song.title }}<br/><small>by {{ artist.name }}</small></h2>
+    <div class="song">
+      <audio>
+        <source src="{{ song.mp3_stream }}" type="audio/mpeg"/>
+        <source src="{{ song.ogg_stream }}" type="audio/ogg"/>
+      </audio>
+    </div>
     <p>
       download
       <a href="{{ song.flac }}">flac</a>
@@ -76,6 +127,7 @@
       <a href="{{ song.ogg }}">ogg</a>
     </p>
     {% if song.comment %}
+    <br/>
     <div class="more-or-less">
       <div class="more">
         {{ song.comment.more }}

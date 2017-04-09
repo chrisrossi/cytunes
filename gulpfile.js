@@ -10,4 +10,8 @@ gulp.task('default', function() {
     .pipe(gulp.dest('wwwdata/css'));
   gulp.src('src/js/*.js')
     .pipe(gulp.dest('wwwdata/js'));
+  gulp.src('src/vendor/bootstrap-3.3.7/fonts/*')
+    .pipe(gulp.dest('wwwdata/fonts'));
+  gulp.src('src/favicon.ico')
+    .pipe(gulp.dest('wwwdata'));
 });

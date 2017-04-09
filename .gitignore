@@ -3,3 +3,4 @@
 *.egg-info
 node_modules
 var
+nginx.conf
