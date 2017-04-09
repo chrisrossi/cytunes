@@ -4,11 +4,12 @@ version = '2.0'
 
 INSTALL_REQUIRES = [
     'ansible',
+    'awesome-slugify',
     'droplets',
     'Jinja2',
+    'markdown',
     'pytaglib',
     'pyyaml',
-    'awesome-slugify',
 
     # https://github.com/sanpingz/mysql-connector/issues/3
     'mysql-connector==2.1.4',  # FU

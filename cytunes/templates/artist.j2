@@ -10,7 +10,16 @@
 {% endif %}
     <h1>{{ artist.name }}</h1>
     {% if artist.bio %}
-    <p>{{ artist.bio }}</p>
+    <div class="more-or-less">
+      <div class="more">
+        {{ artist.bio.more }}
+      </div>
+      {% if artist.bio.more %}
+      <div class="less">
+        {{ artist.bio.less }}
+      </div>
+      {% endif %}
+    </div>
     {% endif %}
 {% if artist.photo %}
   </div>
@@ -37,7 +46,16 @@
       {% endfor %}
     </ol>
     {% if album.review %}
-    <p>{{ album.review }}</p>
+    <div class="more-or-less">
+      <div class="more">
+        {{ album.review.more }}
+      </div>
+      {% if album.review.more %}
+      <div class="less">
+        {{ album.review.less }}
+      </div>
+      {% endif %}
+    </div>
     {% endif %}
   </div>
 </div>
@@ -57,7 +75,18 @@
       <a href="{{ song.mp3 }}">mp3</a>
       <a href="{{ song.ogg }}">ogg</a>
     </p>
-    <p>{{ song.comment }}</p>
+    {% if song.comment %}
+    <div class="more-or-less">
+      <div class="more">
+        {{ song.comment.more }}
+      </div>
+      {% if song.comment.more %}
+      <div class="less">
+        {{ song.comment.less }}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
 </div>
 <hr/>
