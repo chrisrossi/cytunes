@@ -71,7 +71,7 @@
           </td>
           <td class="track-title">
             {{ song.title }}
-            <audio>
+            <audio preload="none">
               <source src="{{ song.mp3_stream }}" type="audio/mpeg"/>
               <source src="{{ song.ogg_stream }}" type="audio/ogg"/>
             </audio>
@@ -104,7 +104,7 @@
     <img src="{{ song.artwork }}" class="img-responsive" alt="Album Art"/>
   </div>
   <div class="col-md-8">
-    <div class="pull-right player">
+    <div class="pull-right player player-single">
       <div>
         <a href="#" class="play-button">
           <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
@@ -117,7 +117,7 @@
     </div>
     <h2>{{ song.title }}<br/><small>by {{ artist.name }}</small></h2>
     <div class="song">
-      <audio>
+      <audio preload="none">
         <source src="{{ song.mp3_stream }}" type="audio/mpeg"/>
         <source src="{{ song.ogg_stream }}" type="audio/ogg"/>
       </audio>

@@ -1,3 +1,7 @@
+body {
+  background: white url(/img/backgroundstars.jpg) top right no-repeat;
+}
+
 .album h2, .single h2, h1.top {
   margin-top: 0;
 }
@@ -19,4 +23,76 @@ table.songs {
   td {
     vertical-align: top;
   }
+}
+
+.navbar {
+    margin-bottom: 5px;
+}
+
+.navbar-brand {
+  height: 170px;
+  padding: 0;
+}
+
+#main-nav {
+    li>a {
+        background: url(/img/medium_star.gif) 3% 110% no-repeat;
+        padding: 12px 15px 0 30px;
+        font-size: 24px;
+    }
+}
+
+#main-nav .nav {
+  position: absolute;
+  bottom: 40px;
+  left: 260px;
+}
+
+#tagline {
+    position: absolute;
+    bottom: 80px;
+    left: 260px;
+}
+
+#main-content {
+    padding-top: 10px;
+}
+
+#sidebar {
+    background-color: @light-blue;
+    border-radius: 20px;
+
+    li {
+        margin: 0;
+    }
+
+    li>a {
+        color: @dark-brown;
+    } 
+
+    li.active>a {
+        color: @darker-brown;
+        background-color: @dark-blue;
+    }
+
+    li>a:hover {
+        color: @orange;
+    }
+}
+
+.panel {
+    border: @panel-border;
+}
+
+.player-single {
+    border: @panel-border;
+    padding: 7px;
+}
+
+img.pull-left {
+    margin-right: 10px;
+}
+
+.big {
+    font-size: 18px;
 }

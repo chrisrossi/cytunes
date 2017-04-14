@@ -14,4 +14,6 @@ gulp.task('default', function() {
     .pipe(gulp.dest('wwwdata/fonts'));
   gulp.src('src/favicon.ico')
     .pipe(gulp.dest('wwwdata'));
+  gulp.src('src/img/*')
+    .pipe(gulp.dest('wwwdata/img'));
 });

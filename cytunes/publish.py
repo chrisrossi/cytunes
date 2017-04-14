@@ -1,4 +1,5 @@
 import os
+import subprocess
 import yaml
 
 from markdown import markdown
@@ -29,7 +30,17 @@ def main():
     # Home page
     home_page_template = templates.get_template('home.j2')
     with open(os.path.join(WWWDATA, 'index.html'), 'w') as f:
-        f.write(home_page_template.render(artist=None, artists=artists))
+        f.write(home_page_template.render(
+            artist=None, artists=artists, section='about',
+        ))
+
+    # Other misc pages
+    for what in ('contact', 'donate'):
+        template = templates.get_template(what + '.j2')
+        with open(os.path.join(WWWDATA, what + '.html'), 'w') as f:
+            f.write(template.render(
+                artist=None, artists=artists, section=what,
+            ))
 
     # Artist pages
     artist_template = templates.get_template('artist.j2')
@@ -37,6 +48,9 @@ def main():
         index_html = os.path.join(WWWDATA, artist['slug'], 'index.html')
         with open(index_html, 'w') as f:
             f.write(artist_template.render(artist=artist, artists=artists))
+
+    # Gulp
+    subprocess.check_call(['gulp'])
 
 
 LEN = 180

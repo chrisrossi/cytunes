@@ -19,23 +19,69 @@
   </head>
   <body>
     <div class="container">
-      <div class="page-header">
-        <h1>CyTunes</h1>
-      </div>
+      <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <!-- Brand and toggle get grouped for better mobile display -->
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" 
+                data-toggle="collapse" 
+                data-target="#bs-example-navbar-collapse-1" 
+                aria-expanded="false">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">
+              <img src="/img/cylogo.gif" alt="CyTunes"/>
+            </a>
+          </div>
+
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="collapse navbar-collapse" id="main-nav">
+            <img id="tagline" src="/img/tagline.gif" 
+              alt="Download music. Downsize cancer."/>
+            <ul class="nav navbar-nav">
+              <li
+                {% if section == 'about' %}
+                class="active"
+                {% endif %}>
+                <a href="/">About</a>
+              </li>
+              <li
+                {% if section == 'donate' %}
+                class="active"
+                {% endif %}>
+                <a href="/donate.html">Donate</a>
+              </li>
+              <li
+                {% if section == 'contact' %}
+                class="active"
+                {% endif %}>
+                <a href="/contact.html">Contact</a>
+              </li>
+            </ul>
+          </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+      </nav>
       <div class="row">
-        <div class="col-md-9 col-md-push-3">
+        <div class="col-md-9 col-md-push-3" id="main-content">
           {% block content %}
           Content goes here.
           {% endblock %}
         </div>
-        <div class="col-md-3 col-md-pull-9">
+        <div class="col-md-3 col-md-pull-9" id="sidebar">
+          <h3>Artists</h3>
           <ul class="nav nav-pills nav-stacked">
             {% for a in artists %}
             <li role="presentation" 
                 {% if a['slug'] == artist['slug'] %}
                 class="active"
                 {% endif %}>
-              <a href="/{{ a.slug }}">{{ a.name }}</a>
+              <a href="/{{ a.slug }}/">
+                <img src="/img/littlestar.png"/>
+                {{ a.name }}
+              </a>
             </li>
             {% endfor %}
           </ul>
