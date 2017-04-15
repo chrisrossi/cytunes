@@ -34,28 +34,49 @@ table.songs {
   padding: 0;
 }
 
-#main-nav {
-    li>a {
-        background: url(/img/medium_star.gif) 3% 110% no-repeat;
-        padding: 12px 15px 0 30px;
-        font-size: 24px;
+
+@media (min-width: @screen-md-min) {
+    #main-nav {
+        ul.nav>li>a {
+            background: url(/img/medium_star.gif) 3% 110% no-repeat;
+            padding: 12px 15px 0 30px;
+            font-size: 24px;
+        }
     }
 }
 
-#main-nav .nav {
-  position: absolute;
-  bottom: 40px;
-  left: 260px;
+@media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
+    #main-nav {
+        ul.nav>li>a {
+            background: url(/img/littlestar.png) 3% 110% no-repeat;
+            padding: 2px 20px 0 24px;
+            font-size: 18px;
+        }
+    }
 }
 
-#tagline {
-    position: absolute;
-    bottom: 80px;
-    left: 260px;
+@media (min-width: @screen-sm-min) {
+    #main-nav .nav {
+      position: absolute;
+      bottom: 40px;
+      left: 260px;
+    }
+
+    #tagline {
+        position: absolute;
+        bottom: 80px;
+        left: 260px;
+    }
+
+    #main-content {
+        padding-top: 10px;
+    }
 }
 
-#main-content {
-    padding-top: 10px;
+@media (max-width: @screen-xs-max) {
+    #tagline {
+        .hidden();
+    }
 }
 
 #sidebar {
