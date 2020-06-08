@@ -1,6 +1,7 @@
 .*.swp
 *.pyc
 *.egg-info
+package-lock.json
 node_modules
 var
 nginx.conf
